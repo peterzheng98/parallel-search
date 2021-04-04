@@ -10,6 +10,8 @@ public:
     MemoryEvent() = default;
     void DebugOutput();
     void ShortOutput();
+    bool getWrite();
+    int getAddr();
 };
 
 #endif

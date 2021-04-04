@@ -10,3 +10,7 @@ void MemoryEvent::DebugOutput(){
 void MemoryEvent::ShortOutput(){
     std::cout << (isWrite ? "W" : "L") << address << " ";
 }
+
+bool MemoryEvent::getWrite(){ return this->isWrite; }
+
+int MemoryEvent::getAddr(){ return this->address; }
