@@ -2,6 +2,7 @@
 #include "MemEvent.h"
 #include <vector>
 #include <iostream>
+#include <fstream>
 
 std::vector<MemoryEvent> MemoryEventList, mem_1, mem_2, mem_3, mem_4, prefix_1, prefix_2;
 std::vector<std::vector<MemoryEvent>> AllLists;
@@ -26,22 +27,22 @@ void dfs(std::vector<MemoryEvent>& target_list_1, std::vector<MemoryEvent>& targ
 }
 
 void doInitialize(){
-    mem_1.push_back(MemoryEvent(0, 2, false));
-    mem_1.push_back(MemoryEvent(0, 1, false));
-    mem_1.push_back(MemoryEvent(0, 2, false));
+    mem_1.push_back(MemoryEvent(0, 2, false, 1));
+    mem_1.push_back(MemoryEvent(0, 1, false, 2));
+    mem_1.push_back(MemoryEvent(0, 2, false, 3));
     
-    mem_3.push_back(MemoryEvent(0, 1, false));
-    mem_3.push_back(MemoryEvent(0, 2, false));
+    mem_3.push_back(MemoryEvent(0, 1, false, 2));
+    mem_3.push_back(MemoryEvent(0, 2, false, 3));
 
-    mem_2.push_back(MemoryEvent(1, 1, true));
-    mem_2.push_back(MemoryEvent(1, 2, true));
-    mem_2.push_back(MemoryEvent(1, 1, true)); 
+    mem_2.push_back(MemoryEvent(1, 1, true, 4));
+    mem_2.push_back(MemoryEvent(1, 2, true, 5));
+    mem_2.push_back(MemoryEvent(1, 1, true, 6)); 
     
-    mem_4.push_back(MemoryEvent(1, 2, true));
-    mem_4.push_back(MemoryEvent(1, 1, true));
+    mem_4.push_back(MemoryEvent(1, 2, true, 5));
+    mem_4.push_back(MemoryEvent(1, 1, true, 6));
 
-    prefix_1.push_back(MemoryEvent(0, 2, false));
-    prefix_2.push_back(MemoryEvent(1, 1, true));
+    prefix_1.push_back(MemoryEvent(0, 2, false, 1));
+    prefix_2.push_back(MemoryEvent(1, 1, true, 4));
 }
 
 void dfs2(std::vector<MemoryEvent>& target_list_1, std::vector<MemoryEvent>& prefix, void* data_location, bool* visited){
@@ -68,14 +69,12 @@ void dfs2(std::vector<MemoryEvent>& target_list_1, std::vector<MemoryEvent>& pre
 
 }
 void doDispatch(){
-    MemoryEventList.push_back(MemoryEvent(0, 2, false));
-    MemoryEventList.push_back(MemoryEvent(0, 1, false));
-    MemoryEventList.push_back(MemoryEvent(0, 2, false));
-    
-    MemoryEventList.push_back(MemoryEvent(1, 1, true));
-    MemoryEventList.push_back(MemoryEvent(1, 2, true));
-    MemoryEventList.push_back(MemoryEvent(1, 1, true)); 
-
+    MemoryEventList.push_back(MemoryEvent(0, 2, false, 1));
+    MemoryEventList.push_back(MemoryEvent(0, 1, false, 2));
+    MemoryEventList.push_back(MemoryEvent(0, 2, false, 3));
+    MemoryEventList.push_back(MemoryEvent(1, 1, true, 4));
+    MemoryEventList.push_back(MemoryEvent(1, 2, true, 5));
+    MemoryEventList.push_back(MemoryEvent(1, 1, true, 6)); 
     bool visited[6][6] = {
         {true, false, false, false, false, false}, 
         {false, true, false, false, false, false},
@@ -117,15 +116,25 @@ void doDispatch(){
     for(int i = 0; i < res5->size(); ++i) allresult_sub.push_back(res5->operator[](i));
     for(int i = 0; i < res6->size(); ++i) allresult_sub.push_back(res6->operator[](i));
     std::cout << "Total size: " << allresult_sub.size() << std::endl;
+    std::ofstream rnd("RND.txt");
     for(int i = 0; i < allresult_sub.size(); ++i){
         std::cout << "#" << i << ": ";
         for(int j = 0; j < allresult_sub[i].size(); ++j) allresult_sub[i][j].ShortOutput();
         std::cout << " Result: ";
         int r[5];
         r[1] = r[2] = r[3] = 0;
-        for(int j = 0; j < allresult_sub[i].size(); ++j) if(allresult_sub[i][j].getWrite()) r[allresult_sub[i][j].getAddr()]++; else std::cout << allresult_sub[i][j].getAddr() << ": [" << (r[allresult_sub[i][j].getAddr()]) << "], ";
+        int watchlist[10];
+        for(int i = 0; i < 10; ++i) watchlist[i] = -1;
+        for(int j = 0; j < allresult_sub[i].size(); ++j) if(allresult_sub[i][j].getWrite()) r[allresult_sub[i][j].getAddr()]++; else {
+            std::cout << allresult_sub[i][j].getAddr() << ": [" << (r[allresult_sub[i][j].getAddr()]) << "], ";
+            watchlist[allresult_sub[i][j].getIndex()] = r[allresult_sub[i][j].getAddr()];
+        }
+        for(int i = 0; i < 10; ++i) rnd << watchlist[i] << " ";
+        for(int j = 0; j < allresult_sub[i].size(); ++j) rnd << allresult_sub[i][j].getIndex() << (allresult_sub[i][j].getWrite() ? "W" : "L") << allresult_sub[i][j].getAddr() << " ";
+        rnd << std::endl;
         std::cout << std::endl;
     }
+    rnd.close();
 }
 
 int main(){
@@ -139,6 +148,7 @@ int main(){
     t2.join();
     for(int i = 0; i < p->size(); ++i) AllLists.push_back(p->operator[](i));
     for(int i = 0; i < q->size(); ++i) AllLists.push_back(q->operator[](i));
+    std::ofstream sc("SC.txt");
     std::cout << "SC Result: " << std::endl;
     for(int i = 0; i < AllLists.size(); ++i){
         std::cout << "#" << i << ": ";
@@ -146,9 +156,18 @@ int main(){
         std::cout << " Result: ";
         int r[5];
         r[1] = r[2] = r[3] = 0;
-        for(int j = 0; j < AllLists[i].size(); ++j) if(AllLists[i][j].getWrite()) r[AllLists[i][j].getAddr()]++; else std::cout << AllLists[i][j].getAddr() << ": [" << (r[AllLists[i][j].getAddr()]) << "], ";
+        int watchlist[10];
+        for(int i = 0; i < 10; ++i) watchlist[i] = -1;
+        for(int j = 0; j < AllLists[i].size(); ++j) if(AllLists[i][j].getWrite()) r[AllLists[i][j].getAddr()]++; else {
+            std::cout << AllLists[i][j].getAddr() << ": [" << (r[AllLists[i][j].getAddr()]) << "], ";
+            watchlist[AllLists[i][j].getIndex()] = r[AllLists[i][j].getAddr()];
+        }
+        for(int i = 0; i < 10; ++i) sc << watchlist[i] << " ";
+        for(int j = 0; j < AllLists[i].size(); ++j) sc << (AllLists[i][j].getWrite() ? "W" : "L") << AllLists[i][j].getAddr() << " ";
+        sc << std::endl;
         std::cout << std::endl;
     }
+    sc.close();
     doDispatch();
     return 0;
 }
